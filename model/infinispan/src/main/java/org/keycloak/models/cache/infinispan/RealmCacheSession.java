@@ -440,12 +440,22 @@ public class RealmCacheSession implements CacheRealmProvider {
     static String getRealmByNameCacheKey(String name) {
         return "realm.query.by.name." + name;
     }
+    
+    @Override
+    public List<RealmModel> getRealmsWithProviderType(Class<?> providerType) {
+        // Retrieve realms from backend
+        List<RealmModel> backendRealms = getDelegate().getRealmsWithProviderType(providerType);
+        return getRealms(backendRealms);
+    }
 
     @Override
     public List<RealmModel> getRealms() {
         // Retrieve realms from backend
         List<RealmModel> backendRealms = getDelegate().getRealms();
+        return getRealms(backendRealms);
+    }
 
+    private List<RealmModel> getRealms(List<RealmModel> backendRealms) {
         // Return cache delegates to ensure cache invalidated during write operations
         List<RealmModel> cachedRealms = new LinkedList<RealmModel>();
         for (RealmModel realm : backendRealms) {

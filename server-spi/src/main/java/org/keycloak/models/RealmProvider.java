@@ -96,6 +96,7 @@ public interface RealmProvider extends Provider {
 
 
     List<RealmModel> getRealms();
+    List<RealmModel> getRealmsWithProviderType(Class<?> type);
     boolean removeRealm(String id);
     void close();
 
