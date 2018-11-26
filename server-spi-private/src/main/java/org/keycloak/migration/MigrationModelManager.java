@@ -72,9 +72,9 @@ public class MigrationModelManager {
             new MigrateTo3_2_0(),
             new MigrateTo3_4_0(),
             new MigrateTo3_4_1(),
-            new MigrateTo3_4_2(),
-            new MigrateTo4_0_0(),
-            new MigrateTo4_2_0()
+            new MigrateTo3_4_2()
+            //new MigrateTo4_0_0(),
+            //new MigrateTo4_2_0()
     };
 
     public static void migrate(KeycloakSession session) {
