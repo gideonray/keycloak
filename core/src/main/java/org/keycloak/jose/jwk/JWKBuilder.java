@@ -19,20 +19,12 @@ package org.keycloak.jose.jwk;
 
 import org.keycloak.common.util.Base64Url;
 import org.keycloak.common.util.KeyUtils;
+import org.keycloak.common.util.PemUtils;
 
 import java.math.BigInteger;
 import java.security.PublicKey;
-import java.security.cert.CertPath;
 import java.security.cert.Certificate;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author <a href="mailto:sthorger@redhat.com">Stian Thorgersen</a>
@@ -41,8 +33,6 @@ public class JWKBuilder {
 
     public static final String DEFAULT_PUBLIC_KEY_USE = "sig";
     public static final String DEFAULT_MESSAGE_DIGEST = "SHA-256";
-    public static final String DEFAULT_CERTIFICATE_TYPE = "X.509";
-    private static final Logger LOG = Logger.getLogger(JWKBuilder.class.getName());
 
     private String kid;
 
@@ -70,7 +60,7 @@ public class JWKBuilder {
         k.setPublicKeyUse(DEFAULT_PUBLIC_KEY_USE);
         k.setModulus(Base64Url.encode(toIntegerBytes(rsaKey.getModulus())));
         k.setPublicExponent(Base64Url.encode(toIntegerBytes(rsaKey.getPublicExponent())));
-        k.setX509CertificateChain(generateCertificateChain(certificate));
+        k.setX509CertificateChain(new String [] {PemUtils.encodeCertificate(certificate)});
 
         return k;
     }
@@ -101,20 +91,4 @@ public class JWKBuilder {
         System.arraycopy(bigBytes, startSrc, resizedBytes, startDst, len);
         return resizedBytes;
     }
-    
-    private static String[] generateCertificateChain(Certificate certificate) {
-        List<String> publicKeyChain = new ArrayList<String>();
-        try {
-            CertPath path = CertificateFactory.getInstance(DEFAULT_CERTIFICATE_TYPE).generateCertPath(Collections.singletonList(certificate));
-            
-            for (Certificate c:  path.getCertificates()) {
-                String encodedPublicKey =  Base64.getEncoder().encodeToString(c.getPublicKey().getEncoded());
-                publicKeyChain.add(encodedPublicKey);
-            }
-        } catch (CertificateException ex) {
-            LOG.log(Level.WARNING, "error when creating JWK x5c certificate chain.", ex);
-        }
-        return publicKeyChain.toArray(new String[publicKeyChain.size()]);
-    }
-
 }
