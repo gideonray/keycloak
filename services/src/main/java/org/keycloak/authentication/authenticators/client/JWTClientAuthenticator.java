@@ -157,18 +157,16 @@ public class JWTClientAuthenticator extends AbstractClientAuthenticator {
                 throw new RuntimeException("Token is not active");
             }
 
-            if (token.getId() == null) {
-                throw new RuntimeException("Missing ID on the token");
-            }
+            if (token.getId() != null) {
+                SingleUseTokenStoreProvider singleUseCache = context.getSession().getProvider(SingleUseTokenStoreProvider.class);
+                int lifespanInSecs = Math.max(token.getExpiration() - currentTime, 10);
+                if (singleUseCache.putIfAbsent(token.getId(), lifespanInSecs)) {
+                    logger.tracef("Added token '%s' to single-use cache. Lifespan: %d seconds, client: %s", token.getId(), lifespanInSecs, clientId);
 
-            SingleUseTokenStoreProvider singleUseCache = context.getSession().getProvider(SingleUseTokenStoreProvider.class);
-            int lifespanInSecs = Math.max(token.getExpiration() - currentTime, 10);
-            if (singleUseCache.putIfAbsent(token.getId(), lifespanInSecs)) {
-                logger.tracef("Added token '%s' to single-use cache. Lifespan: %d seconds, client: %s", token.getId(), lifespanInSecs, clientId);
-
-            } else {
-                logger.warnf("Token '%s' already used when authenticating client '%s'.", token.getId(), clientId);
-                throw new RuntimeException("Token reuse detected");
+                } else {
+                    logger.warnf("Token '%s' already used when authenticating client '%s'.", token.getId(), clientId);
+                    throw new RuntimeException("Token reuse detected");
+                }    
             }
 
             context.success();
